@@ -20,6 +20,13 @@ icdar2015 = DatasetConfig(
             'test': 500
         }
 )
+voc2007 = DatasetConfig(
+        file_pattern = 'voc2007_%s.tfrecord', 
+        split_sizes = {
+            'train': 4000,
+            'test': 1000
+        }
+)
 td500 = DatasetConfig(
         file_pattern = '*_%s.tfrecord', 
         split_sizes = {
@@ -51,6 +58,7 @@ synthtext = DatasetConfig(
 datasets_map = {
     'icdar2013':icdar2013,
     'icdar2015':icdar2015,
+    'voc2007': voc2007,
     'scut':scut,
     'td500':td500,
     'tr400':tr400,
