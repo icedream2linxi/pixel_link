@@ -117,7 +117,7 @@ def _set_image_shape(shape):
     assert h % 4 == 0
     
     train_image_shape = [h, w]
-    score_map_shape = (h / strides[0], w / strides[0])
+    score_map_shape = (h // strides[0], w // strides[0])
     image_shape = train_image_shape
 
 def _set_batch_size(bz):
@@ -154,12 +154,12 @@ def init_config(image_shape, batch_size = 1,
     num_clones = len(gpus)
     
     global clone_scopes
-    clone_scopes = ['clone_%d'%(idx) for idx in xrange(num_clones)]
+    clone_scopes = ['clone_%d'%(idx) for idx in range(num_clones)]
     
     _set_batch_size(batch_size)
     
     global batch_size_per_gpu
-    batch_size_per_gpu = batch_size / num_clones
+    batch_size_per_gpu = batch_size // num_clones
     if batch_size_per_gpu < 1:
         raise ValueError('Invalid batch_size [=%d], \
                 resulting in 0 images per gpu.'%(batch_size))
@@ -176,6 +176,8 @@ def print_config(flags, dataset, save_dir = None, print_to_file = True):
         print('# =========================================================================== #', file=stream)
         
         def print_ckpt(path):
+            if util.str.is_none_or_empty(path):
+                return False
             ckpt = util.tf.get_latest_ckpt(path)
             if ckpt is not None:
                 print('Resume Training from : %s'%(ckpt), file = stream)
@@ -211,7 +213,7 @@ def print_config(flags, dataset, save_dir = None, print_to_file = True):
             
         util.io.mkdir(save_dir)
         path = util.io.join_path(save_dir, 'training_config.txt')
-        with open(path, "a") as out:
+        with open(path, "a+") as out:
             do_print(out)
     
 def load_config(path):
