@@ -30,7 +30,7 @@ def main(_):
                        num_gpus = 1, 
                    )
 
-    image = tf.placeholder(dtype=tf.int32, shape = [None, None, 3])
+    image = tf.placeholder(dtype=tf.int32, shape = [None, None, 3], name='input_image')
     processed_image, _, _, _, _ = ssd_vgg_preprocessing.preprocess_image(image, None, None, None, None, 
                                                    out_shape = config.image_shape,
                                                    data_format = config.data_format, 

@@ -280,7 +280,7 @@ def decode_image(pixel_scores, link_scores,
         raise ValueError('Unknow decode method:%s'%(config.decode_method))
 
 
-import pyximport; pyximport.install()    
+import pyximport; pyximport.install()
 from pixel_link_decode import decode_image_by_join
 
 def min_area_rect(cnt):
@@ -319,7 +319,7 @@ def rect_to_xys(rect, image_shape):
         return y
     
     rect = ((rect[0], rect[1]), (rect[2], rect[3]), rect[4])
-    points = cv2.cv.BoxPoints(rect)
+    points = cv2.boxPoints(rect)
     points = np.int0(points)
     for i_xy, (x, y) in enumerate(points):
         x = get_valid_x(x)
