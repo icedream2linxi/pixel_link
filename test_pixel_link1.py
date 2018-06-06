@@ -19,7 +19,10 @@ import config
 # =========================================================================== #
 # Checkpoint and running Flags
 # =========================================================================== #
-tf.app.flags.DEFINE_string('checkpoint_path', 'e:/ocr/pixel_link_train/model.ckpt-352462', 
+tf.app.flags.DEFINE_string('train_dir', None, 
+                           'the path to store checkpoints and eventfiles for summaries')
+
+tf.app.flags.DEFINE_string('checkpoint_path', None, 
    'the path of pretrained model to be used. If there are checkpoints\
     in train_dir, this config will be ignored.')
 
@@ -47,11 +50,11 @@ tf.app.flags.DEFINE_string(
 tf.app.flags.DEFINE_string(
     'dataset_split_name', 'test', 'The name of the train/test split.')
 tf.app.flags.DEFINE_string('dataset_dir', 
-           util.io.get_absolute_path('e:/ocr/images'), 
+           util.io.get_absolute_path('~/dataset/ICDAR2015/Challenge4/ch4_test_images'), 
            'The directory where the dataset files are stored.')
 
-tf.app.flags.DEFINE_integer('eval_image_width', 1280, 'Train image size')
-tf.app.flags.DEFINE_integer('eval_image_height', 768, 'Train image size')
+tf.app.flags.DEFINE_integer('eval_image_width', 512, 'Train image size')
+tf.app.flags.DEFINE_integer('eval_image_height', 512, 'Train image size')
 tf.app.flags.DEFINE_bool('using_moving_average', True, 
                          'Whether to use ExponentionalMovingAverage')
 tf.app.flags.DEFINE_float('moving_average_decay', 0.9999, 
@@ -68,7 +71,7 @@ def config_initialization():
         raise ValueError('You must supply the dataset directory with --dataset_dir')
     
     tf.logging.set_verbosity(tf.logging.DEBUG)
-    config.load_config(FLAGS.checkpoint_path)
+    config.load_config(FLAGS.train_dir)
     config.init_config(image_shape, 
                        batch_size = 1, 
                        pixel_conf_threshold = 0.8,
@@ -98,6 +101,13 @@ def to_txt(txt_path, image_name,
     write_result_as_txt(image_name, bboxes, txt_path)
 
 def test():
+    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+    checkpoint_exists = ckpt and ckpt.model_checkpoint_path
+    if not checkpoint_exists:
+        tf.logging.info('Checkpoint not exists in FLAGS.train_dir')
+        return
+    checkpoint = ckpt.model_checkpoint_path
+
     with tf.name_scope('test'):
         image = tf.placeholder(dtype=tf.int32, shape = [None, None, 3])
         image_shape = tf.placeholder(dtype = tf.int32, shape = [3, ])
@@ -116,7 +126,7 @@ def test():
     elif FLAGS.gpu_memory_fraction > 0:
         sess_config.gpu_options.per_process_gpu_memory_fraction = FLAGS.gpu_memory_fraction;
     
-    checkpoint_dir = util.io.get_dir(FLAGS.checkpoint_path)
+    checkpoint_dir = util.io.get_dir(checkpoint)
     logdir = util.io.join_path(checkpoint_dir, 'test', FLAGS.dataset_name + '_' +FLAGS.dataset_split_name)
 
     # Variables to restore: moving avg. or normal weights.
@@ -134,8 +144,8 @@ def test():
     image_names = util.io.ls(FLAGS.dataset_dir)
     image_names.sort()
     
-    checkpoint = FLAGS.checkpoint_path
-    checkpoint_name = util.io.get_filename(str(checkpoint))
+    # checkpoint = FLAGS.checkpoint_path
+    checkpoint_name = util.io.get_filename(str(checkpoint));
     dump_path = util.io.join_path(logdir, checkpoint_name)
     txt_path = util.io.join_path(dump_path,'txt')        
     zip_path = util.io.join_path(dump_path, checkpoint_name + '_det.zip')
@@ -160,10 +170,10 @@ def test():
 
             
     # create zip file for icdar2015
-    cmd = 'cd %s;zip -j %s %s/*'%(dump_path, zip_path, txt_path)
-    print(cmd)
-    util.cmd.cmd(cmd);
-    print("zip file created: ", util.io.join_path(dump_path, zip_path))
+    # cmd = 'cd %s;zip -j %s %s/*'%(dump_path, zip_path, txt_path);
+    # print cmd
+    # util.cmd.cmd(cmd);
+    # print "zip file created: ", util.io.join_path(dump_path, zip_path)
 
          
 
